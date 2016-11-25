@@ -6,6 +6,10 @@
 
 ### What should the output format report at the `Values` and `Error` parameters
 
+### How to report 
+
+`map[int] float64`? `([][]float64, []float64)`?
+
 ### Which functional forms get their own wrapper functions/PDFs?
 
 ### p0 is a parameter to fit.Line.Foo()
