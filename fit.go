@@ -59,7 +59,9 @@ func Curve(f Func) Model { return nil }
 // model, like limits.
 //
 // Example usage:
+//
 // Line.XYErrors(x, y, xerr, yerr)
+//
 // Curve.YLowerLimits(xLower, yLower).YErrors(x, y, yerr)
 type Model interface {
 	// UnknownErrors will return an additional parameter representing the
