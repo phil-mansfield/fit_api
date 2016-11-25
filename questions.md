@@ -8,7 +8,7 @@
 
 ### How to report 
 
-`map[int] float64`? `([][]float64, []float64)`?
+`[]map[int] float64`? `([][]float64, []float64)`?
 
 ### Which functional forms get their own wrapper functions/PDFs?
 
@@ -19,6 +19,8 @@
 ### Handling fits that insert parameters beyond what the user specifed
 
 ### Percentile functions
+
+(For that matter: bootstrapping)
 
 ### Splitting `NewSampler` and `Sample` functions
 
