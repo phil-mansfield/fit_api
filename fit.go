@@ -29,9 +29,9 @@ var (
 	// p[0]*x^p[1]. All error bars provided to to PowerLaw methods are assumed
 	// to represent the logarithmic standard deviation of (base 10) log-
 	// normal distributions (If you do not have log-normal error distributions,
-	// you'll have to use Curve). PowerLaw is provided as a special case over
-	// the more general Curve Model to provide access to Model methods with X
-	// error bars.
+	// you'll have to use Curve). All x and y values must be the same sign and
+	// must not be zero. PowerLaw is provided as a special case over the more
+	// general Curve Model to provide access to Model methods with X error bars.
 	//
 	// Example usage:
 	// out, err := PowerLaw.XErrors(p0, x, y, xerr)
@@ -49,8 +49,13 @@ type Func func(x float64, param []float64) float64
 // calling them will result in a runtime panic.
 //
 // Example usage:
+//
 // out, err := Curve(f).YErrors(p0, x, y, yerr)
 func Curve(f Func) Model { return nil }
+
+type ModelOption modelOption
+type modelOption func(*modelConfig)
+type modelConfig struct { }
 
 // Model is a collection of fitting functions for a particular functional form.
 // It has methods of two types: fitting methods and modification methods. All
@@ -66,25 +71,17 @@ func Curve(f Func) Model { return nil }
 type Model interface {
 	// UnknownErrors will return an additional parameter representing the
 	// best-fit intrisic scatter.
-	UnknownErrors(p0 []Parameter, x, y []float64) (Output, error)
+	UnknownErrors(p0 []Parameter, x, y []float64, opt ...ModelOption) (Output, error)
 
-	YErrors(p0 []Parameter, x, y, yerr []float64) (Output, error)
-	XErrors(p0 []Parameter, x, y, xerr []float64) (Output, error)
- 	XYErrors(p0 []Parameter, x, y, xerr, yerr []float64) (Output, error)
+	YErrors(p0 []Parameter, x, y, yerr []float64, opt ...ModelOption) (Output, error)
+	XErrors(p0 []Parameter, x, y, xerr []float64, opt ...ModelOption) (Output, error)
+ 	XYErrors(p0 []Parameter, x, y, xerr, yerr []float64, opt ...ModelOption) (Output, error)
 
 	// YErrorsAndScatter will return an additional parameter representing the
 	// best-fit intrisic scatter. Other "AndScatter" methods behave analogously.
-	YErrorsAndScatter(p0 []Parameter, x, y, yerr []float64) (Output, error)
-	XErrorsAndScatter(p0 []Parameter, x, y, xerr []float64) (Output, error)
- 	XYErrorsAndScatter(p0 []Parameter, x, y, xerr, yerr []float64) (Output, error)
- 
-	// YUpperLimits creates a new Model which contains upper limits in the
-	// y direction at the specified points. Other "Limits" methods behave
-	// analogously.
-	YUpperLimits(x, y []float64) Model
-	YLowerLimits(x, y []float64) Model
-	XUpperLimits(x, y []float64) Model
-	XLowerLimits(x, y []float64) Model
+	YErrorsAndScatter(p0 []Parameter, x, y, yerr []float64, opt ...ModelOption) (Output, error)
+	XErrorsAndScatter(p0 []Parameter, x, y, xerr []float64, opt ...ModelOption) (Output, error)
+ 	XYErrorsAndScatter(p0 []Parameter, x, y, xerr, yerr []float64, opt ...ModelOption) (Output, error)
 }
 
 var (
@@ -99,20 +96,15 @@ func CurvePDF(f Func) ModelPDF { return nil }
 //
 // (I'll write  more complete documentation once the Model API is stable).
 type ModelPDF interface {
-	UnknownErrors(p0 []Parameter, x, y []float64) LogPDF
+	UnknownErrors(p0 []Parameter, x, y []float64, opt ...ModelOption) LogPDF
 
-	YErrors(p0 []Parameter, x, y, yerr []float64) LogPDF
-	XErrors(p0 []Parameter, x, y, xerr []float64) LogPDF
+	YErrors(p0 []Parameter, x, y, yerr []float64, opt ...ModelOption) LogPDF
+	XErrors(p0 []Parameter, x, y, xerr []float64, opt ...ModelOption) LogPDF
  	XYErrors(p0 []Parameter, x, y, xerr, yerr []float64) LogPDF
 
-	YErrorsAndScatter(p0 []Parameter, x, y, yerr []float64) LogPDF
-	XErrorsAndScatter(p0 []Parameter, x, y, xerr []float64) LogPDF
- 	XYErrorsAndScatter(p0 []Parameter, x, y, xerr, yerr []float64) LogPDF
-
-	YUpperLimits(x, y []float64) ModelPDF
-	YLowerLimits(x, y []float64) ModelPDF
-	XUpperLimits(x, y []float64) ModelPDF
-	XLowerLimits(x, y []float64) ModelPDF
+	YErrorsAndScatter(p0 []Parameter, x, y, yerr []float64, opt ...ModelOption) LogPDF
+	XErrorsAndScatter(p0 []Parameter, x, y, xerr []float64, opt ...ModelOption) LogPDF
+ 	XYErrorsAndScatter(p0 []Parameter, x, y, xerr, yerr []float64, opt ...ModelOption) LogPDF
 }
 
 type Parameter struct {
@@ -126,13 +118,20 @@ func (p Parameter) UpperLimit(lim float64) Parameter { return p }
 func (p Parameter) Limits(lower, upper float64) Parameter { return p }
 func (p Parameter) LogPrior(pr func(float64) float64) Parameter { return p }
 
+// LogPDF returns the natural log of the probability distribution function being
+// sampled. When fitting a curve or distribution to data, this will be the
+// conditional probability P(data | model). It does not need to be normalized.
+//
+// There is no NonLogPDF type.
 type LogPDF func(param []float64) float64
 
+// Sampler is an Markov chain Monte Carlo sampler (specifically, an affine
+// invariant Goodman-Weare sampler). It is the core 
 type Sampler struct { }
 
 type SamplerOption samplerOption
-type samplerConfig struct { }
 type samplerOption func(*samplerConfig)
+type samplerConfig struct { }
 
 func NewSampler(pdf LogPDF, p0 []Parameter, opts ...SamplerOption) *Sampler {
 	return nil
@@ -146,8 +145,8 @@ func StepGranularity(n int) SamplerOption { return nil }
 type ConvergenceTest convergenceTest
 type convergenceTest func(chains [][][]float64) bool
 
-func GelmanRubin(lim float64) ConvergenceTest
-func Steps(n int) ConvergenceTest
+func GelmanRubin(lim float64) ConvergenceTest { return nil }
+func Steps(n int) ConvergenceTest { return nil }
 
 func (sampler *Sampler) Samples(tests ...ConvergenceTest) ([][]float64, error) {
 	return nil, nil

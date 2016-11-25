@@ -52,11 +52,11 @@ larger than 7:
 x, y, xerr, yerr := // Data (provided by user)
 xup, yup := // Locations of upper bounds (provided by user)
 
-guesses := []ParameterGuesses{
+guesses := []ParameterGuess{
     {X: 1.0}.UpperLimit(7),
     {X: 3.0},
 }
-out, err := Line.AddUpperBounds(xup, yup).XYErrors(guesses, x, y, xerr, yerr)
+out, err := Line.XYErrors(guesses, x, y, xerr, yerr, fit.YUpperBounds(xup, yup))
 if err != nil { panic("Fit did not converge.") }
 
 fmt.Printf("Values: %.4g\n", out.Values)
