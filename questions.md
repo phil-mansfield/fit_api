@@ -58,3 +58,5 @@ do)
 ### `Parameter` method signature
 
 ### How exactly should fititng power laws work?
+
+### How far are we willing to go when it comes to not forcing the user to specify initial parameter vectors?
