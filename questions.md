@@ -60,3 +60,7 @@ do)
 ### How exactly should fititng power laws work?
 
 ### How far are we willing to go when it comes to not forcing the user to specify initial parameter vectors?
+
+### Should we bother with predefined functions that don't statically improve our ability to fit them?
+
+(There are a lot of libraries that love doing this, but it's super easy to write function pointers.)
